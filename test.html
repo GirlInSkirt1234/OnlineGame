@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Крестики-нолики с комнатами</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 500px;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 2.5rem;
+        }
+        
+        .screen {
+            display: none;
+        }
+        
+        .active {
+            display: block;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 50px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin: 10px;
+            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+        }
+        
+        .btn:active {
+            transform: translateY(1px);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #ff7e5f 0%, #feb47b 100%);
+        }
+        
+        .input-group {
+            margin: 20px 0;
+        }
+        
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 1rem;
+            margin: 10px 0;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus {
+            border-color: #6a11cb;
+            outline: none;
+        }
+        
+        .code-display {
+            font-size: 2.5rem;
+            font-weight: bold;
+            letter-spacing: 5px;
+            color: #6a11cb;
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f5f5f5;
+            border-radius: 10px;
+            border: 2px dashed #6a11cb;
+        }
+        
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-gap: 10px;
+            margin: 20px auto;
+            max-width: 300px;
+        }
+        
+        .cell {
+            aspect-ratio: 1;
+            background-color: #f0f0f0;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 3rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .cell:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .cell.x {
+            color: #6a11cb;
+        }
+        
+        .cell.o {
+            color: #ff7e5f;
+        }
+        
+        .status {
+            font-size: 1.2rem;
+            margin: 15px 0;
+            font-weight: bold;
+            min-height: 30px;
+        }
+        
+        .player-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #f5f5f5;
+            border-radius: 10px;
+        }
+        
+        .player {
+            display: flex;
+            align-items: center;
+        }
+        
+        .player-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        
+        .player1 .player-icon {
+            background-color: #6a11cb;
+        }
+        
+        .player2 .player-icon {
+            background-color: #ff7e5f;
+        }
+        
+        .current-turn {
+            font-weight: bold;
+            color: #6a11cb;
+        }
+        
+        .message {
+            padding: 10px;
+            border-radius: 10px;
+            margin: 10px 0;
+        }
+        
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .waiting {
+            font-style: italic;
+            color: #666;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎮 Крестики-нолики</h1>
+        
+        <!-- Экран выбора -->
+        <div id="menu-screen" class="screen active">
+            <p>Выберите действие:</p>
+            <button id="create-room-btn" class="btn">Создать комнату</button>
+            <button id="join-room-btn" class="btn btn-secondary">Войти в комнату</button>
+        </div>
+        
+        <!-- Экран создания комнаты -->
+        <div id="create-room-screen" class="screen">
+            <h2>Создание комнаты</h2>
+            <p>Поделитесь этим кодом с другом:</p>
+            <div id="room-code" class="code-display">XXXXXX</div>
+            <p class="waiting">Ожидание подключения второго игрока...</p>
+            <button id="start-game-btn" class="btn" disabled>Начать игру</button>
+            <button id="back-from-create" class="btn btn-secondary">Назад</button>
+        </div>
+        
+        <!-- Экран входа в комнату -->
+        <div id="join-room-screen" class="screen">
+            <h2>Вход в комнату</h2>
+            <p>Введите код комнаты:</p>
+            <div class="input-group">
+                <input type="text" id="room-code-input" maxlength="6" placeholder="Введите 6-значный код">
+            </div>
+            <button id="join-btn" class="btn">Войти</button>
+            <button id="back-from-join" class="btn btn-secondary">Назад</button>
+            <div id="join-message" class="message"></div>
+        </div>
+        
+        <!-- Экран игры -->
+        <div id="game-screen" class="screen">
+            <h2>Игра началась!</h2>
+            <div class="player-info">
+                <div class="player player1">
+                    <div class="player-icon"></div>
+                    <span>Игрок 1 (X)</span>
+                </div>
+                <div class="player player2">
+                    <div class="player-icon"></div>
+                    <span>Игрок 2 (O)</span>
+                </div>
+            </div>
+            <div id="game-status" class="status">Ход игрока 1 (X)</div>
+            <div class="game-board" id="game-board">
+                <div class="cell" data-index="0"></div>
+                <div class="cell" data-index="1"></div>
+                <div class="cell" data-index="2"></div>
+                <div class="cell" data-index="3"></div>
+                <div class="cell" data-index="4"></div>
+                <div class="cell" data-index="5"></div>
+                <div class="cell" data-index="6"></div>
+                <div class="cell" data-index="7"></div>
+                <div class="cell" data-index="8"></div>
+            </div>
+            <button id="restart-game-btn" class="btn">Новая игра</button>
+            <button id="back-to-menu" class="btn btn-secondary">Выйти в меню</button>
+        </div>
+    </div>
+
+    <script>
+        // Элементы DOM
+        const screens = {
+            menu: document.getElementById('menu-screen'),
+            createRoom: document.getElementById('create-room-screen'),
+            joinRoom: document.getElementById('join-room-screen'),
+            game: document.getElementById('game-screen')
+        };
+        
+        const roomCodeDisplay = document.getElementById('room-code');
+        const roomCodeInput = document.getElementById('room-code-input');
+        const joinMessage = document.getElementById('join-message');
+        const gameBoard = document.getElementById('game-board');
+        const gameStatus = document.getElementById('game-status');
+        const startGameBtn = document.getElementById('start-game-btn');
+        
+        // Кнопки
+        document.getElementById('create-room-btn').addEventListener('click', createRoom);
+        document.getElementById('join-room-btn').addEventListener('click', showJoinScreen);
+        document.getElementById('back-from-create').addEventListener('click', showMenu);
+        document.getElementById('back-from-join').addEventListener('click', showMenu);
+        document.getElementById('join-btn').addEventListener('click', joinRoom);
+        document.getElementById('restart-game-btn').addEventListener('click', restartGame);
+        document.getElementById('back-to-menu').addEventListener('click', showMenu);
+        
+        // Игровые переменные
+        let currentPlayer = 'X';
+        let gameState = ['', '', '', '', '', '', '', '', ''];
+        let gameActive = false;
+        let roomCode = '';
+        let isHost = false;
+        let playerSymbol = '';
+        
+        // Функции для переключения экранов
+        function showScreen(screen) {
+            Object.values(screens).forEach(s => s.classList.remove('active'));
+            screen.classList.add('active');
+        }
+        
+        function showMenu() {
+            showScreen(screens.menu);
+            resetGame();
+        }
+        
+        function showJoinScreen() {
+            showScreen(screens.joinRoom);
+            roomCodeInput.value = '';
+            joinMessage.textContent = '';
+            joinMessage.className = 'message';
+        }
+        
+        // Создание комнаты
+        function createRoom() {
+            // Генерация случайного 6-значного кода
+            roomCode = generateRoomCode();
+            roomCodeDisplay.textContent = roomCode;
+            isHost = true;
+            playerSymbol = 'X';
+            showScreen(screens.createRoom);
+            
+            // В реальном приложении здесь был бы код для отправки кода на сервер
+            // Для демонстрации просто активируем кнопку через 3 секунды
+            setTimeout(() => {
+                startGameBtn.disabled = false;
+                startGameBtn.textContent = 'Начать игру';
+            }, 3000);
+            
+            startGameBtn.addEventListener('click', startGame);
+        }
+        
+        // Вход в комнату
+        function joinRoom() {
+            const code = roomCodeInput.value.toUpperCase();
+            
+            if (code.length !== 6) {
+                showMessage('Код комнаты должен содержать 6 символов', 'error');
+                return;
+            }
+            
+            // В реальном приложении здесь был бы запрос к серверу для проверки кода
+            // Для демонстрации просто принимаем любой 6-символьный код
+            roomCode = code;
+            isHost = false;
+            playerSymbol = 'O';
+            showMessage('Успешное подключение к комнате!', 'success');
+            
+            // Запускаем игру через 2 секунды
+            setTimeout(() => {
+                startGame();
+            }, 2000);
+        }
+        
+        // Запуск игры
+        function startGame() {
+            showScreen(screens.game);
+            gameActive = true;
+            updateGameStatus();
+            
+            // Добавляем обработчики для ячеек
+            document.querySelectorAll('.cell').forEach(cell => {
+                cell.addEventListener('click', handleCellClick);
+            });
+        }
+        
+        // Обработка клика по ячейке
+        function handleCellClick(event) {
+            const clickedCell = event.target;
+            const cellIndex = parseInt(clickedCell.getAttribute('data-index'));
+            
+            // Проверяем, можно ли сделать ход
+            if (gameState[cellIndex] !== '' || !gameActive) {
+                return;
+            }
+            
+            // В реальном приложении здесь была бы проверка, чей сейчас ход
+            // и отправка хода на сервер
+            makeMove(cellIndex, currentPlayer);
+            
+            // Проверяем результат игры
+            checkGameResult();
+        }
+        
+        // Сделать ход
+        function makeMove(index, player) {
+            gameState[index] = player;
+            const cell = document.querySelector(`.cell[data-index="${index}"]`);
+            cell.textContent = player;
+            cell.classList.add(player.toLowerCase());
+        }
+        
+        // Проверка результата игры
+        function checkGameResult() {
+            const winConditions = [
+                [0, 1, 2], [3, 4, 5], [6, 7, 8], // горизонтали
+                [0, 3, 6], [1, 4, 7], [2, 5, 8], // вертикали
+                [0, 4, 8], [2, 4, 6]             // диагонали
+            ];
+            
+            let roundWon = false;
+            let winner = '';
+            
+            for (let i = 0; i < winConditions.length; i++) {
+                const [a, b, c] = winConditions[i];
+                if (gameState[a] && gameState[a] === gameState[b] && gameState[a] === gameState[c]) {
+                    roundWon = true;
+                    winner = gameState[a];
+                    break;
+                }
+            }
+            
+            if (roundWon) {
+                gameStatus.textContent = `Победил игрок ${winner === 'X' ? '1 (X)' : '2 (O)'}!`;
+                gameActive = false;
+                return;
+            }
+            
+            const roundDraw = !gameState.includes('');
+            if (roundDraw) {
+                gameStatus.textContent = 'Ничья!';
+                gameActive = false;
+                return;
+            }
+            
+            // Смена хода
+            currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+            updateGameStatus();
+        }
+        
+        // Обновление статуса игры
+        function updateGameStatus() {
+            gameStatus.textContent = `Ход игрока ${currentPlayer === 'X' ? '1 (X)' : '2 (O)'}`;
+            
+            // Подсвечиваем текущего игрока
+            document.querySelectorAll('.player').forEach(player => {
+                player.classList.remove('current-turn');
+            });
+            
+            if (currentPlayer === 'X') {
+                document.querySelector('.player1').classList.add('current-turn');
+            } else {
+                document.querySelector('.player2').classList.add('current-turn');
+            }
+        }
+        
+        // Перезапуск игры
+        function restartGame() {
+            resetGame();
+            gameActive = true;
+            currentPlayer = 'X';
+            updateGameStatus();
+        }
+        
+        // Сброс игры
+        function resetGame() {
+            gameState = ['', '', '', '', '', '', '', '', ''];
+            document.querySelectorAll('.cell').forEach(cell => {
+                cell.textContent = '';
+                cell.classList.remove('x', 'o');
+            });
+        }
+        
+        // Показать сообщение
+        function showMessage(text, type) {
+            joinMessage.textContent = text;
+            joinMessage.className = `message ${type}`;
+        }
+        
+        // Генерация кода комнаты
+        function generateRoomCode() {
+            const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let result = '';
+            for (let i = 0; i < ROOM_CODE_LENGTH; i++) {
+                result += characters.charAt(Math.floor(Math.random() * characters.length));
+            }
+            return result;
+        }
+        
+        // Ограничение ввода кода комнаты
+        roomCodeInput.addEventListener('input', function() {
+            this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+        });
+    </script>
+</body>
+</html>
