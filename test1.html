@@ -22,7 +22,7 @@
         }
         
         .container {
-            background-color: rgba(255, 255, 255, 0.95);
+            background-color: rgba(255, 255, 255, 0.9);
             border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
             width: 100%;
@@ -34,7 +34,7 @@
         h1 {
             color: #2c3e50;
             margin-bottom: 20px;
-            font-size: 2.2rem;
+            font-size: 2.5rem;
         }
         
         .screen {
@@ -56,7 +56,6 @@
             margin: 10px;
             transition: all 0.3s ease;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-            width: 200px;
         }
         
         .btn:hover {
@@ -186,22 +185,13 @@
             border: 1px solid #f5c6cb;
         }
         
-        .instructions {
-            background-color: #f8f9fa;
-            border-radius: 10px;
-            padding: 15px;
-            margin: 20px 0;
-            text-align: left;
-            font-size: 0.9rem;
-        }
-        
         @media (max-width: 480px) {
             .container {
                 padding: 20px;
             }
             
             h1 {
-                font-size: 1.8rem;
+                font-size: 2rem;
             }
             
             .game-board {
@@ -211,26 +201,16 @@
             .cell {
                 font-size: 2rem;
             }
-            
-            .btn {
-                width: 100%;
-                margin: 5px 0;
-            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🎮 Крестики-нолики</h1>
+        <h1>Крестики-нолики</h1>
         
         <!-- Экран выбора -->
         <div id="menu-screen" class="screen active">
-            <div class="instructions">
-                <h3>Как играть:</h3>
-                <p>1. Создайте комнату и поделитесь кодом с другом</p>
-                <p>2. Или присоединитесь к существующей комнате по коду</p>
-                <p>3. Играйте по очереди, заполняя поле крестиками и ноликами</p>
-            </div>
+            <p>Выберите действие:</p>
             <button id="create-room-btn" class="btn">Создать комнату</button>
             <button id="join-room-btn" class="btn btn-secondary">Присоединиться к комнате</button>
         </div>
@@ -247,7 +227,7 @@
         <!-- Экран присоединения к комнате -->
         <div id="join-room-screen" class="screen">
             <p>Введите код комнаты:</p>
-            <input type="text" id="room-code-input" class="input-field" placeholder="Введите 4-значный код" maxlength="4">
+            <input type="text" id="room-code-input" class="input-field" placeholder="Введите код комнаты" maxlength="4">
             <div id="join-error" class="message error" style="display: none;">Неверный код комнаты</div>
             <button id="join-btn" class="btn">Присоединиться</button>
             <button id="cancel-join-btn" class="btn btn-secondary">Назад</button>
@@ -398,6 +378,9 @@
             updateGameStatus();
             updatePlayerIndicators();
             showScreen(screens.game);
+            
+            // В реальном приложении здесь было бы уведомление сервера
+            // о начале игры и синхронизация состояния
         }
         
         // Обновление статуса игры
@@ -421,6 +404,9 @@
             if (gameState.board[index] !== '' || !gameState.gameActive) {
                 return;
             }
+            
+            // В реальном многопользовательском приложении здесь была бы проверка,
+            // что ход делает текущий игрок, и отправка хода на сервер
             
             // Для демонстрации позволяем ходить любому игроку в любое время
             makeMove(index, gameState.currentPlayer);
@@ -532,18 +518,6 @@
         // Очистка сообщения об ошибке при вводе кода
         roomCodeInput.addEventListener('input', () => {
             joinError.style.display = 'none';
-        });
-        
-        // Автозаполнение заглавными буквами
-        roomCodeInput.addEventListener('input', function() {
-            this.value = this.value.toUpperCase();
-        });
-        
-        // Обработка нажатия Enter в поле ввода кода
-        roomCodeInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                buttons.join.click();
-            }
         });
     </script>
 </body>
